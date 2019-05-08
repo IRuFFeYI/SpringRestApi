@@ -4,6 +4,9 @@ import com.spring.restApi.SpringRestApi.model.PhonebookEntry;
 import com.spring.restApi.SpringRestApi.service.PhonebookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.QueryAnnotation;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,37 +17,41 @@ public class PhonebookController {
     PhonebookService phonebookService;
 
 
-    @GetMapping("/{id}")
-    public PhonebookEntry getPhonebookEntryById(@PathVariable Integer id){
-        return phonebookService.findById(id).get();
-    }
+
 
     @GetMapping()
-    public Iterable<PhonebookEntry> getPhonebookEntries(@RequestParam(required = false) String name, @RequestParam(name = "vorname", required = false) String prename){
+    public ResponseEntity<Iterable<PhonebookEntry>> getPhonebookEntries(@RequestParam(required = false) String name, @RequestParam(name = "vorname", required = false) String prename){
         if(name == null && prename == null){
-            return phonebookService.findAll();
+            return ResponseEntity.ok(phonebookService.findAll());
         }
         else if(prename == null){
-            return phonebookService.getAllByName(name);
+            return ResponseEntity.ok(phonebookService.getAllByName(name));
         }
         else if(name == null){
-            return phonebookService.getAllByPrename(prename);
+            return ResponseEntity.ok(phonebookService.getAllByPrename(prename));
         }
-        return phonebookService.getAllByNameAndPrename(name, prename);
+        return ResponseEntity.ok(phonebookService.getAllByNameAndPrename(name, prename));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PhonebookEntry> getPhonebookEntryById(@PathVariable Integer id){
+        ResponseEntity response = new ResponseEntity(phonebookService.findById(id).get(), HttpStatus.valueOf(200));
+        return response;
     }
 
     @PostMapping()
-    public PhonebookEntry createPhonebookEntry(@RequestBody PhonebookEntry entry){
-        return phonebookService.save(entry);
+    public ResponseEntity<PhonebookEntry> createPhonebookEntry(@RequestBody PhonebookEntry entry){
+        return ResponseEntity.ok(phonebookService.save(entry));
     }
 
     @PutMapping()
-    public PhonebookEntry updatePhonebookEntry(@RequestBody PhonebookEntry entry){
-        return phonebookService.save(entry);
+    public ResponseEntity<PhonebookEntry> updatePhonebookEntry(@RequestBody PhonebookEntry entry){
+        return ResponseEntity.ok(phonebookService.save(entry));
     }
 
-    @DeleteMapping()
-    public void updatePhonebookEntry(@PathVariable Integer id){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> updatePhonebookEntry(@PathVariable Integer id){
         phonebookService.deleteById(id);
+        return new ResponseEntity<Void>(HttpStatus.valueOf(204));
     }
 }
