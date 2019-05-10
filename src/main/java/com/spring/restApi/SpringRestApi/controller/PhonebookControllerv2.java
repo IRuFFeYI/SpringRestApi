@@ -4,17 +4,14 @@ import com.spring.restApi.SpringRestApi.model.PhonebookEntry;
 import com.spring.restApi.SpringRestApi.service.PhonebookService;
 import com.spring.restApi.SpringRestApi.util.FieldErrorMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.annotation.QueryAnnotation;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import sun.security.validator.ValidatorException;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -30,30 +27,29 @@ public class PhonebookControllerv2 {
     public ResponseEntity<PhonebookEntry> getPhonebookEntryById(@PathVariable Integer id){
         if(id <= 0 || id == null)
         {
-            return new ResponseEntity(HttpStatus.valueOf(400));
+            return ResponseEntity.badRequest().build();
         }
         try
         {
-            ResponseEntity response = new ResponseEntity(phonebookService.findById(id).get(), HttpStatus.valueOf(200));
-            return response;
+            return ResponseEntity.ok(phonebookService.findById(id).get());
         }
         catch (NoSuchElementException e)
         {
-            return new ResponseEntity(HttpStatus.valueOf(404));
+            return ResponseEntity.notFound().build();
         }
     }
 
     @PostMapping()
-    public ResponseEntity<PhonebookEntry> createPhonebookEntry(@RequestBody PhonebookEntry entry) throws ValidatorException {
+    public ResponseEntity<PhonebookEntry> createPhonebookEntry(@RequestBody PhonebookEntry entry)  {
         if(entry.getId() == 0 && entry.getName() != null && entry.getPrename() != null && entry.getPhoneNumber() != null)
             return ResponseEntity.ok(phonebookService.save(entry));
         else {
-            throw new ValidatorException("Entry cannot be created");
+            throw new ValidationException("Entry cannot be created");
         }
     }
 
-    @ExceptionHandler(ValidatorException.class)
-    ResponseEntity<String> exeptionHandler(ValidatorException e){
+    @ExceptionHandler(ValidationException.class)
+    ResponseEntity<String> exeptionHandler(ValidationException e){
         return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
@@ -63,7 +59,7 @@ public class PhonebookControllerv2 {
     }
 
     @PostMapping("/valid")
-    public ResponseEntity<PhonebookEntry> createPhonebookEntryJavaValidation(@Valid @RequestBody PhonebookEntry entry) throws ValidatorException {
+    public ResponseEntity<PhonebookEntry> createPhonebookEntryJavaValidation(@Valid @RequestBody PhonebookEntry entry)  {
             return ResponseEntity.ok(phonebookService.save(entry));
     }
 
