@@ -1,57 +1,63 @@
 package com.spring.restApi.SpringRestApi.controller;
 
+import com.spring.restApi.SpringRestApi.boundary.PhonebookManager;
 import com.spring.restApi.SpringRestApi.model.PhonebookEntry;
-import com.spring.restApi.SpringRestApi.service.PhonebookService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.QueryAnnotation;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.validation.ValidationException;
+import java.net.URI;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("api/v1/phonebook")
+@RequestMapping("api/v1/phonebookentrys")
 public class PhonebookController {
 
     @Autowired
-    PhonebookService phonebookService;
-
-
-
-
-    @GetMapping()
-    public ResponseEntity<Iterable<PhonebookEntry>> getPhonebookEntries(@RequestParam(required = false) String name, @RequestParam(name = "vorname", required = false) String prename){
-        if(name == null && prename == null){
-            return ResponseEntity.ok(phonebookService.findAll());
-        }
-        else if(prename == null){
-            return ResponseEntity.ok(phonebookService.getAllByName(name));
-        }
-        else if(name == null){
-            return ResponseEntity.ok(phonebookService.getAllByPrename(prename));
-        }
-        return ResponseEntity.ok(phonebookService.getAllByNameAndPrename(name, prename));
-    }
+    PhonebookManager boundary;
 
     @GetMapping("/{id}")
-    public ResponseEntity<PhonebookEntry> getPhonebookEntryById(@PathVariable Integer id){
-        ResponseEntity response = new ResponseEntity(phonebookService.findById(id).get(), HttpStatus.valueOf(200));
-        return response;
+    public ResponseEntity<PhonebookEntry> getPhonebookEntryById(@PathVariable int id){
+        Optional<PhonebookEntry> entity = boundary.getPhonebookEntryById(id);
+        return ResponseEntity.of(entity);
     }
 
     @PostMapping()
-    public ResponseEntity<PhonebookEntry> createPhonebookEntry(@RequestBody PhonebookEntry entry){
-        return ResponseEntity.ok(phonebookService.save(entry));
+    public ResponseEntity<URI> createPhonebookEntry(@RequestBody PhonebookEntry entry){
+        boundary.createPhonebookEntry(entry);
+        return ResponseEntity.created(UriComponentsBuilder.fromPath("").build(entry.getId())).build();
     }
 
     @PutMapping()
-    public ResponseEntity<PhonebookEntry> updatePhonebookEntry(@RequestBody PhonebookEntry entry){
-        return ResponseEntity.ok(phonebookService.save(entry));
+    public ResponseEntity updatePhonebookEntry(@RequestBody PhonebookEntry entry){
+        boundary.updatePhonebookEntry(entry);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> updatePhonebookEntry(@PathVariable Integer id){
-        phonebookService.deleteById(id);
-        return new ResponseEntity<Void>(HttpStatus.valueOf(204));
+    public ResponseEntity deletePhonebookEntry(@PathVariable int id){
+        boundary.deletePhonebookEntry(id);
+        return ResponseEntity.noContent().build();
     }
+
+    @GetMapping()
+    public ResponseEntity<Iterable<PhonebookEntry>> filterPhonebookEntries(@RequestParam(required = false) String name, @RequestParam(name = "vorname", required = false) String prename){
+        Iterable<PhonebookEntry> entries = boundary.getEntityByNameOrPrename(name, prename);
+        return ResponseEntity.ok(entries);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({ValidationException.class, IllegalArgumentException.class})
+    String ValidationExeptionHandler(Exception e){
+        return e.getMessage();
+    }
+
+//    @ExceptionHandler(IllegalArgumentException.class)
+//    ResponseEntity<String> IllegalArgumentExceptionHandler(IllegalArgumentException e){
+//        return ResponseEntity.notFound().build();
+//    }
+
 }

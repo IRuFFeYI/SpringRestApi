@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 @Entity
 public class PhonebookEntry {
@@ -13,10 +14,13 @@ public class PhonebookEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @NotBlank
+    @NotEmpty
     private String prename;
     @NotBlank
+    @NotEmpty
     private String name;
     @NotBlank
+    @NotEmpty
     private String phoneNumber;
 
 
