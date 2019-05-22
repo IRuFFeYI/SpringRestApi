@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.ValidationException;
@@ -13,7 +14,7 @@ import java.net.URI;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/v1/phonebookentrys")
+@RequestMapping("api/v1/phonebookentries")
 public class PhonebookController {
 
     @Autowired
@@ -26,9 +27,10 @@ public class PhonebookController {
     }
 
     @PostMapping()
-    public ResponseEntity<URI> createPhonebookEntry(@RequestBody PhonebookEntry entry){
+    public ResponseEntity<URI> createPhonebookEntry(@RequestBody PhonebookEntry entry, UriComponentsBuilder builder){
         boundary.createPhonebookEntry(entry);
-        return ResponseEntity.created(UriComponentsBuilder.fromPath("").build(entry.getId())).build();
+        URI uri = UriComponentsBuilder.fromPath("api/v1/phonebookentries/{id}").buildAndExpand(entry.getId()).toUri();
+        return ResponseEntity.created(uri).build();
     }
 
     @PutMapping()

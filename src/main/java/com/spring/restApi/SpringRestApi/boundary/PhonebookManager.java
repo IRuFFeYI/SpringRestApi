@@ -21,8 +21,7 @@ public class PhonebookManager {
         if(id <= 0){
             throw new ValidationException();
         }
-        Optional<PhonebookEntry> entry = phonebookRepository.findById(id);
-        return entry;
+        return phonebookRepository.findById(id);
     }
 
     public PhonebookEntry createPhonebookEntry(@Valid PhonebookEntry entry){
